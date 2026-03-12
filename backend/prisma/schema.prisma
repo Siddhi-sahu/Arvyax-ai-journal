@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  ambience  String
+  text      String
+  emotion   String
+  keywords  String[]
+  summary   String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

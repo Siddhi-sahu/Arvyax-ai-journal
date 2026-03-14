@@ -11,11 +11,16 @@ export const createJournalEntry = async (req: any, res:any) => {
             });
         };
 
+        const analysis = await analyzeEmotion(text);
+
         const entry = await prisma.journalEntry.create({
             data: {
                 userId,
                 ambience,
-                text
+                text,
+                emotion: analysis.emotion,
+                keywords: analysis.keywords,
+                summary: analysis.summary
             }
         });
 
@@ -51,7 +56,6 @@ export const analyzeJournal = async (req: any, res: any) => {
     if (!text) {
       return res.status(400).json({ error: "text is required" });
     }
-
     const analysis = await analyzeEmotion(text);
 
     res.json(analysis);

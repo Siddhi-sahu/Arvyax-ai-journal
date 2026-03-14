@@ -12,7 +12,7 @@ model JournalEntry {
   userId    String
   ambience  String
   text      String
-  emotion   String
+  emotion   String?
   keywords  String[]
   summary   String?
   createdAt DateTime @default(now())

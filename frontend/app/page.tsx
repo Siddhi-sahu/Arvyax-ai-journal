@@ -234,12 +234,12 @@ function WriteTab({
     if (!text.trim()) return;
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/journal`, {
+      const res = await fetch(`${API_BASE}/api/journal`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, ambience, text }),
       });
-      if (!res.ok) throw new Error("error saving entry");
+      if (!res.ok) throw new Error("Save failed");
       setText("");
       onSaved("Entry saved 🌿", "success");
     } catch {
@@ -274,7 +274,7 @@ function WriteTab({
         <textarea
           className="ax-ta"
           rows={7}
-          placeholder="How did the session make you feel? Describe your experience with nature…"
+          placeholder="How did the session make you feel? Describe your experience..."
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
@@ -308,12 +308,10 @@ function EntriesTab({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/journal/${userId}`);
+      const res = await fetch(`${API_BASE}/api/journal/${userId}`);
       if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
-      const list: JournalEntry[] = Array.isArray(data)
-        ? data
-        : (data.entries ?? []);
+      const list: JournalEntry[] = Array.isArray(data) ? data : (data.entries ?? []);
       setEntries([...list].reverse());
     } catch {
       setEntries("error");
@@ -330,7 +328,7 @@ function EntriesTab({
     text: string
   ): Promise<EmotionAnalysis | null> => {
     try {
-      const res = await fetch(`${API_BASE}/journal/analyze`, {
+      const res = await fetch(`${API_BASE}/api/journal/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
@@ -374,8 +372,7 @@ function EntriesTab({
         </div>
       )}
 
-      {!loading &&
-        Array.isArray(entries) &&
+      {!loading && Array.isArray(entries) &&
         entries.map((e) => (
           <EntryCard
             key={e.id ?? e._id ?? e.createdAt}
@@ -394,7 +391,7 @@ function InsightsTab({ userId }: { userId: string }) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/journal/insights/${userId}`);
+        const res = await fetch(`${API_BASE}/api/journal/insights/${userId}`);
         if (!res.ok) throw new Error("Insights failed");
         setData((await res.json()) as InsightsData);
       } catch {
@@ -413,9 +410,7 @@ function InsightsTab({ userId }: { userId: string }) {
 
   if (!data) return <div className="ax-loading">Gathering insights…</div>;
 
-  const keywords = Array.isArray(data.recentKeywords)
-    ? data.recentKeywords
-    : [];
+  const keywords = Array.isArray(data.recentKeywords) ? data.recentKeywords : [];
 
   return (
     <div>
@@ -462,14 +457,12 @@ function InsightsTab({ userId }: { userId: string }) {
   );
 }
 
-// ── PAGE (default export) ─────────────────────────────────────
 type Tab = "write" | "entries" | "insights";
-
-const TABS: { key: Tab; label: string }[] = [
+const TABS = [
   { key: "write", label: "✍️ Write" },
   { key: "entries", label: "📖 Entries" },
   { key: "insights", label: "✨ Insights" },
-];
+] as const;
 
 export default function JournalPage() {
   const [userId, setUserId] = useState("user_001");
@@ -479,12 +472,11 @@ export default function JournalPage() {
   const showToast = useCallback(
     (msg: string, type: "success" | "error" = "success") => {
       setToast({ msg, type });
-      setTimeout(() => setToast((prev) => ({ ...prev, msg: "" })), 2800);
+      setTimeout(() => setToast(prev => ({ ...prev, msg: "" })), 2800);
     },
     []
   );
 
-  // Inject global styles once (avoids adding a separate .css file)
   useEffect(() => {
     if (document.getElementById("ax-styles")) return;
     const s = document.createElement("style");
@@ -499,14 +491,12 @@ export default function JournalPage() {
   return (
     <div className="ax-root">
       <div className="ax-inner">
-        {/* Header */}
         <header className="ax-header">
           <span className="ax-logo">🌿</span>
           <h1>ArvyaX Journal</h1>
           <p>Nature · Reflection · Insight</p>
         </header>
 
-        {/* User ID */}
         <div className="ax-user">
           <span className="ax-dot" />
           <label htmlFor="userId">User ID</label>
@@ -518,7 +508,6 @@ export default function JournalPage() {
           />
         </div>
 
-        {/* Tabs */}
         <div className="ax-tabs" role="tablist">
           {TABS.map((t) => (
             <button
@@ -533,13 +522,8 @@ export default function JournalPage() {
           ))}
         </div>
 
-        {/* Panels */}
-        {tab === "write" && (
-          <WriteTab userId={userId} onSaved={showToast} />
-        )}
-        {tab === "entries" && (
-          <EntriesTab userId={userId} onToast={showToast} />
-        )}
+        {tab === "write" && <WriteTab userId={userId} onSaved={showToast} />}
+        {tab === "entries" && <EntriesTab userId={userId} onToast={showToast} />}
         {tab === "insights" && <InsightsTab userId={userId} />}
       </div>
 

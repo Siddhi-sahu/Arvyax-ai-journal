@@ -1,6 +1,7 @@
 # ArvyaX AI Journal
 
 An AI-powered journaling system built with Next.js (frontend) and Express (backend), using an LLM to analyze emotion in journal entries and surface insights.
+Video demo - https://youtu.be/r_wfBlEytXc
 
 Tech Stack
 - Next.js
